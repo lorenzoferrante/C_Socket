@@ -8,11 +8,13 @@
 #include <unistd.h>
 #include "utils.c"
 
+char *get_address();
+
 int create_socket_desc(int *socket_desc, struct sockaddr_in *server, int port);
 
 int bind_socket(const int *socket_desc, struct sockaddr_in *server);
 
-int accept_connection(const int *socket_desc, int *client_sock, int *c, struct sockaddr_in *client);
+int accept_connection(const int *socket_desc, int *client_sock, int *c, struct sockaddr_in *client, int port);
 
 int read_from_client(const int *client_sock, struct PAYLOAD *data);
 

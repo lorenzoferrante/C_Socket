@@ -1,5 +1,8 @@
 #include "server.h"
 
+#include <sys/ioctl.h>
+#include <net/if.h>
+
 int create_socket_desc(int *socket_desc, struct sockaddr_in *server, int port) {
 
     *socket_desc = socket(AF_INET, SOCK_STREAM, 0);
@@ -30,10 +33,11 @@ int bind_socket(const int *socket_desc, struct sockaddr_in *server) {
     return 1;
 }
 
-int accept_connection(const int *socket_desc, int *client_sock, int *c, struct sockaddr_in *client) {
+int accept_connection(const int *socket_desc, int *client_sock, int *c, struct sockaddr_in *client, int port) {
 
     struct PAYLOAD *data = malloc(sizeof(struct PAYLOAD));
 
+    printf("Listening at %s:%d\n", inet_ntoa((*client).sin_addr), port);
     printf("Waiting for incoming connections...\n");
 
     *c = sizeof(struct sockaddr_in);
@@ -88,18 +92,62 @@ int send_to_client(const int *client_sock) {
     return 1;
 }
 
-int main() {
+char *get_address() {
 
-    int socket_desc, client_sock, c;
+    int fd;
+    struct ifreq ifr;
+
+    char iface[] = "en0";
+
+    fd = socket(AF_INET, SOCK_DGRAM, 0);
+
+    //Type of address to retrieve - IPv4 IP address
+    ifr.ifr_addr.sa_family = AF_INET;
+
+    //Copy the interface name in the ifreq structure
+    strncpy(ifr.ifr_name , iface , IFNAMSIZ-1);
+
+    ioctl(fd, SIOCGIFADDR, &ifr);
+
+    close(fd);
+
+    //display result
+    char *ipAddr = inet_ntoa(((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr);
+    return ipAddr;
+}
+
+int main(int argc, char *argv[]) {
+
+    int socket_desc, client_sock, c, d, port = 8000;
+    int pFlag = 0;
     struct sockaddr_in server, client;
 
-    if (create_socket_desc(&socket_desc, &server, 8080) != 1)
+    while ((d = getopt(argc, argv, "p:")) != -1) {
+        switch (d) {
+            case 'p':
+                pFlag = 1;
+                port = atoi(optarg);
+                break;
+            default:
+                exit(-1);
+        }
+    }
+
+    char *ipAddr = get_address();
+    printf("IP address: %s\n", ipAddr);
+
+    if (pFlag == 0) {
+        printf("[Usage] ./server -p [port]\n");
+        exit(-1);
+    }
+
+    if (create_socket_desc(&socket_desc, &server, port) != 1)
         perror("Error creating socket\n");
 
     if (bind_socket(&socket_desc, &server) != 1)
         perror("Error binding socket\n");
 
-    if (accept_connection(&socket_desc, &client_sock, &c, &client) != 1)
+    if (accept_connection(&socket_desc, &client_sock, &c, &client, port) != 1)
         perror("Error accepting connection\n");
 
     return 0;

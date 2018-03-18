@@ -7,6 +7,6 @@ Simple client/server socket comunication, written in C.
 * Support multiple connections
 
 ## Usage:
-`gcc server.c -o server && ./server`
+`gcc server.c -o server && ./server -p [port]`
 
-`gcc client.c -o client && ./client`
+`gcc client.c -o client && ./client -a [address] -p [port]`

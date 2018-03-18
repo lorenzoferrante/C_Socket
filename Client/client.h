@@ -7,7 +7,7 @@
 #include <arpa/inet.h>
 #include "utils.c"
 
-int create_socket(int *sock, struct sockaddr_in *server);
+int create_socket(char *server_addr, int *sock, struct sockaddr_in *server, int port);
 
 int connect_to_server(int *sock, struct sockaddr_in *server);
 

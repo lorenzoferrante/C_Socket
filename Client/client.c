@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include "client.h"
 
-int create_socket(int *sock, struct sockaddr_in *server) {
+int create_socket(char *server_addr, int *sock, struct sockaddr_in *server, int port) {
 
     *sock = socket(AF_INET, SOCK_STREAM, 0);
     if (*sock == -1) {
@@ -11,9 +11,9 @@ int create_socket(int *sock, struct sockaddr_in *server) {
     }
     printf("Socket created\n");
 
-    (*server).sin_addr.s_addr = inet_addr("127.0.0.1");
+    (*server).sin_addr.s_addr = inet_addr(server_addr);
     (*server).sin_family = AF_INET;
-    (*server).sin_port = htons(8080);
+    (*server).sin_port = htons(port);
 
     return 1;
 }
@@ -92,12 +92,36 @@ struct PAYLOAD *read_message(const int *sock) {
     return reply;
 }
 
-int main(void) {
+int main(int argc, char *argv[]) {
 
-    int sock;
+    int sock, port = 8000, d;
+    int pFlag = 0, aFlag = 0;
+    char *ipAddr = NULL;
     struct sockaddr_in server;
 
-    if (create_socket(&sock, &server) != 1) {
+    while ((d = getopt(argc, argv, "a:p:")) != -1) {
+        switch (d) {
+            case 'a':
+                aFlag = 1;
+                ipAddr = optarg;
+                break;
+            case 'p':
+                pFlag = 1;
+                port = atoi(optarg);
+                break;
+            default:
+                exit(-1);
+        }
+    }
+
+    if (pFlag == 0 || aFlag == 0) {
+        printf("[Usage] ./server -a [address] -p [port]\n");
+        exit(-1);
+    }
+
+    printf("Trying to connect to: %s:%d\n", ipAddr, port);
+
+    if (create_socket(ipAddr, &sock, &server, port) != 1) {
         perror("Error creating socket\n");
         return -1;
     }
