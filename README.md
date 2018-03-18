@@ -7,5 +7,5 @@ Simple client/server socket comunication, written in C.
 * Support multiple connections
 
 ## Usage:
-`gcc server.c -o server
+`gcc server.c -o server\n
 gcc client.c -o client`
