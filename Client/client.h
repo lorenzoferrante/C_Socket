@@ -5,11 +5,14 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include "utils.c"
 
 int create_socket(int *sock, struct sockaddr_in *server);
 
-int connet_to_server(int *sock, struct sockaddr_in *server);
+int connect_to_server(int *sock, struct sockaddr_in *server);
 
-int send_message(int *sock, char message[1000], char server_reply[2000]);
+int send_message(const int *sock, struct PAYLOAD *data, char server_reply[MAXBUFLEN]);
+
+struct PAYLOAD *read_message(const int *sock);
 
 #endif
