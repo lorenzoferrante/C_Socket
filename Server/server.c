@@ -1,5 +1,4 @@
 #include "server.h"
-
 #include <sys/ioctl.h>
 #include <net/if.h>
 
@@ -10,7 +9,7 @@ int create_socket_desc(int *socket_desc, struct sockaddr_in *server, int port) {
         printf("Could not create socket\n");
         return -1;
     }
-    printf("Socket created\n");
+    printf("[Info]\tSocket created\n");
 
     (*server).sin_family = AF_INET;
     (*server).sin_addr.s_addr = INADDR_ANY;
@@ -25,10 +24,9 @@ int bind_socket(const int *socket_desc, struct sockaddr_in *server) {
         perror("Bind failed\n");
         return -1;
     }
-    printf("Bind done\n");
+    printf("[Info]\tBind done\n");
 
     listen(*socket_desc, 3);
-    printf("Listening...\n");
 
     return 1;
 }
@@ -37,8 +35,8 @@ int accept_connection(const int *socket_desc, int *client_sock, int *c, struct s
 
     struct PAYLOAD *data = malloc(sizeof(struct PAYLOAD));
 
-    printf("Listening at %s:%d\n", inet_ntoa((*client).sin_addr), port);
-    printf("Waiting for incoming connections...\n");
+    printf("[Info]\tListening at %s:%d\n", get_address(), port);
+    printf("[Info]\tWaiting for incoming connections\n");
 
     *c = sizeof(struct sockaddr_in);
 
@@ -47,7 +45,8 @@ int accept_connection(const int *socket_desc, int *client_sock, int *c, struct s
         perror("Accept failed\n");
         return -1;
     }
-    printf("Connection accepted\n");
+    printf(ANSI_COLOR_MAGENTA "\n[Info]\tConnection accepted\n" ANSI_COLOR_MAGENTA);
+    printf(ANSI_COLOR_RESET "\n" ANSI_COLOR_RESET);
 
     if (read_from_client(client_sock, data) != 1)
         perror("Error reading from client\n");
@@ -59,7 +58,7 @@ int read_from_client(const int *client_sock, struct PAYLOAD *data) {
     ssize_t read_size;
 
     while ((read_size = recv(*client_sock, data, sizeof(struct PAYLOAD), 0)) > 0) {
-        printf("Client message: %s\n", data->message);
+        printf("[Info]\tClient message: %s\n", data->message);
 
         if (send_to_client(client_sock) != 1) {
             perror("Error in send_to_client()");
@@ -68,7 +67,8 @@ int read_from_client(const int *client_sock, struct PAYLOAD *data) {
     }
 
     if (read_size == 0) {
-        printf("Client disconnected\n");
+        printf(ANSI_COLOR_RED "[Info]\tClient disconnected\n" ANSI_COLOR_RED);
+        printf(ANSI_COLOR_RESET "\n" ANSI_COLOR_RESET);
         fflush(stdout);
     } else if (read_size == -1)
         perror("Receiving failed\n");
@@ -133,8 +133,12 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    char *public_ip = get_public_ip();
+    printf(ANSI_COLOR_GREEN "[Public IP]\t%s\n" ANSI_COLOR_GREEN, public_ip);
+
     char *ipAddr = get_address();
-    printf("IP address: %s\n", ipAddr);
+    printf(ANSI_COLOR_CYAN "[Local IP]\t%s\n" ANSI_COLOR_CYAN, ipAddr);
+    printf(ANSI_COLOR_RESET "\n" ANSI_COLOR_RESET);
 
     if (pFlag == 0) {
         printf("[Usage] ./server -p [port]\n");

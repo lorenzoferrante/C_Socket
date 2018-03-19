@@ -1,12 +1,15 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+#include "utils.c"
 #include <stdio.h>
 #include <string.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
+#include <stdlib.h>
 #include <unistd.h>
-#include "utils.c"
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <arpa/inet.h>
 
 char *get_address();
 
